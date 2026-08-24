@@ -11,4 +11,8 @@
     <ProjectReference Include="..\Workplace.Web\Workplace.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Sqlite" />
+  </ItemGroup>
+
 </Project>

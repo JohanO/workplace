@@ -59,3 +59,6 @@ nunit-*.xml
 # Visual Studio
 .vs/
 *.user
+
+# Workplace local SQLite data (Stage 1 of the auth/calendar plan)
+src/Workplace.AppHost/data/
