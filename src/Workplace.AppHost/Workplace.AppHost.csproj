@@ -1,0 +1,14 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.5.2">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>1a32d187-c528-4aab-9671-11f4e3ab5d3e</UserSecretsId>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Workplace.ApiService\Workplace.ApiService.csproj" />
+    <ProjectReference Include="..\Workplace.Web\Workplace.Web.csproj" />
+  </ItemGroup>
+
+</Project>

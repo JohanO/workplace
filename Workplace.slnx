@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="aspire.config.json" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Workplace.ApiService/Workplace.ApiService.csproj" />
+    <Project Path="src/Workplace.AppHost/Workplace.AppHost.csproj" />
+    <Project Path="src/Workplace.ServiceDefaults/Workplace.ServiceDefaults.csproj" />
+    <Project Path="src/Workplace.Web/Workplace.Web.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Workplace.Tests/Workplace.Tests.csproj" />
+  </Folder>
+</Solution>

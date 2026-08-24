@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/Workplace.AppHost/Workplace.AppHost.csproj"
+  }
+}
