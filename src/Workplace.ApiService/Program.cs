@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
+using Workplace.ApiService.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
@@ -9,7 +13,23 @@ builder.Services.AddProblemDetails();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddDbContext<WorkplaceDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("workplacedb")));
+
+var dataProtectionKeyPath = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "Workplace", "dpkeys");
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath))
+    .SetApplicationName("Workplace");
+builder.Services.AddSingleton<TokenProtector>();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<WorkplaceDbContext>().Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
