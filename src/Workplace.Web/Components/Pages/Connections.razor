@@ -1,0 +1,76 @@
+@page "/connections"
+@attribute [Authorize]
+@inject ConnectedAccountsApiClient ApiClient
+@using Workplace.Web.CalendarConnections
+
+<PageTitle>Connections</PageTitle>
+
+<h1>Connected Calendars</h1>
+
+@if (accounts is null)
+{
+    <p>Loading…</p>
+}
+else if (accounts.Count == 0)
+{
+    <p>No calendars connected yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Account</th>
+                <th>Granted scopes</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td>@account.Provider</td>
+                    <td>@account.DisplayLabel</td>
+                    <td>@account.GrantedScopes</td>
+                    <td>
+                        @if (account.LastRefreshError is not null)
+                        {
+                            <span class="text-danger">@account.LastRefreshError</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">OK</span>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DisconnectAsync(account.Id)">Disconnect</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Connect an account</h2>
+<ul>
+    <li><a href="connect/MicrosoftGraphPersonal" data-enhance-nav="false">Connect my personal Microsoft calendar (read-write)</a></li>
+    <li><a href="connect/MicrosoftGraphWork" data-enhance-nav="false">Connect a work Microsoft calendar (read-only)</a></li>
+    <li><a href="connect/GoogleCalendar" data-enhance-nav="false">Connect Google Calendar (read-only)</a></li>
+</ul>
+
+@code {
+    private List<ConnectedAccountResponse>? accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accounts = await ApiClient.GetAccountsAsync();
+    }
+
+    private async Task DisconnectAsync(Guid id)
+    {
+        await ApiClient.DisconnectAsync(id);
+        accounts = await ApiClient.GetAccountsAsync();
+    }
+}
