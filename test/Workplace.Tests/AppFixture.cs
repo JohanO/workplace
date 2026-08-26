@@ -6,6 +6,11 @@ public class AppFixture : AspireFixture<Projects.Workplace_AppHost>
 {
     protected override void ConfigureBuilder(IDistributedApplicationTestingBuilder builder)
     {
+        // apiservice won't start without these — provide placeholders so the
+        // fixture can boot without real OAuth client secrets.
+        builder.Configuration["Parameters:msgraph-client-secret"] = "test-msgraph-secret";
+        builder.Configuration["Parameters:google-client-secret"] = "test-google-secret";
+
         builder.Services.ConfigureHttpClientDefaults(clientBuilder =>
         {
             clientBuilder.AddStandardResilienceHandler();
