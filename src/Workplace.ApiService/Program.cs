@@ -56,4 +56,11 @@ app.MapConnectedAccountsEndpoints();
 
 app.MapDefaultEndpoints();
 
+// Map the liveness health check endpoint so Docker Compose can use it to
+// wait for the API to be ready before starting the web container.
+app.MapHealthChecks("/alive", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("live")
+});
+
 await app.RunAsync();
