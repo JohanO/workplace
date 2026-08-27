@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
+using System.Net;
 using Workplace.Web.CalendarConnections;
 using Workplace.Web.Components;
 
@@ -17,6 +19,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
+
+// Trust the reverse proxy (Cloudflare tunnel) running inside the Docker network so that
+// X-Forwarded-Proto is respected. This ensures OIDC/OAuth callback URIs use https:// and
+// UseHttpsRedirection does not loop when the container itself runs on plain HTTP.
+// Restrict to the Docker bridge network range (172.16.0.0/12) rather than trusting all proxies.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+    options.KnownIPNetworks.Add(new System.Net.IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -124,6 +138,8 @@ builder.Services.AddAuthorization(options =>
         .Build());
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (!app.Environment.IsDevelopment())
 {
