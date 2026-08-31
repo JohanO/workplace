@@ -15,6 +15,7 @@
     <Project Path="src/Workplace.Web/Workplace.Web.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Workplace.ApiService.UnitTests/Workplace.ApiService.UnitTests.csproj" />
     <Project Path="test/Workplace.Tests/Workplace.Tests.csproj" />
   </Folder>
 </Solution>
