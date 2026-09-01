@@ -10,6 +10,7 @@ public class AppFixture : AspireFixture<Projects.Workplace_AppHost>
         // fixture can boot without real OAuth client secrets.
         builder.Configuration["Parameters:msgraph-client-secret"] = "test-msgraph-secret";
         builder.Configuration["Parameters:google-client-secret"] = "test-google-secret";
+        builder.Configuration["Parameters:outlook-sync-key"] = "test-outlook-sync-key";
 
         builder.Services.ConfigureHttpClientDefaults(clientBuilder =>
         {
