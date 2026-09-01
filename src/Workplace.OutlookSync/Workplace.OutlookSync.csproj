@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Not part of Workplace.slnx: this project targets a Windows-only TFM for Outlook COM
+    interop, and CI (.github/workflows/ci.yml) builds the whole solution on ubuntu-latest.
+    It's built and run manually on the Windows machine with Outlook installed.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UserSecretsId>d22b88a7-b2d2-493a-9c2d-c29cbdd30888</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Office.Interop.Outlook" />
+  </ItemGroup>
+
+  <!--
+    The Microsoft.Office.Interop.Outlook NuGet package references the core Office PIA
+    ("office") but doesn't bring it along, and .NET (unlike .NET Framework) never probes the
+    GAC — the office PIA has to be referenced explicitly from wherever the local Office
+    install put it, so it gets copied next to the exe at build time.
+  -->
+  <ItemGroup>
+    <Reference Include="office">
+      <HintPath>C:\Windows\assembly\GAC_MSIL\office\15.0.0.0__71e9bce111e9429c\office.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Workplace.Contracts\Workplace.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
