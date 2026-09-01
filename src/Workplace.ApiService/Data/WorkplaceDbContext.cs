@@ -6,6 +6,7 @@ public class WorkplaceDbContext(DbContextOptions<WorkplaceDbContext> options) : 
 {
     public DbSet<AppUser> AppUsers => Set<AppUser>();
     public DbSet<ConnectedAccount> ConnectedAccounts => Set<ConnectedAccount>();
+    public DbSet<WorkCalendarSnapshot> WorkCalendarSnapshots => Set<WorkCalendarSnapshot>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
