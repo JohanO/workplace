@@ -14,6 +14,7 @@ using Microsoft.Identity.Web;
 using System.Net;
 using Workplace.Web.CalendarConnections;
 using Workplace.Web.Components;
+using Workplace.Web.WorkCalendar;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,6 +132,11 @@ builder.Services.AddHttpClient<ConnectedAccountsApiClient>(client =>
     })
     .AddHttpMessageHandler<UserContextHandler>();
 
+builder.Services.AddHttpClient<WorkCalendarSyncApiClient>(client =>
+{
+    client.BaseAddress = new("https+http://apiservice");
+});
+
 // Deny by default — every page requires login unless explicitly marked [AllowAnonymous].
 builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
@@ -173,6 +179,7 @@ app.MapGet("/logout", () =>
     .AllowAnonymous();
 
 app.MapConnectEndpoints();
+app.MapWorkCalendarSyncEndpoints();
 
 app.MapDefaultEndpoints();
 
