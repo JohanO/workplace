@@ -1,4 +1,4 @@
-namespace Workplace.ApiService.Agenda;
+namespace Workplace.Contracts;
 
 public static class AgendaDateRange
 {

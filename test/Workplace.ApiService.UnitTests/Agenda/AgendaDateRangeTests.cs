@@ -1,4 +1,4 @@
-using Workplace.ApiService.Agenda;
+using Workplace.Contracts;
 
 namespace Workplace.ApiService.UnitTests.Agenda;
 

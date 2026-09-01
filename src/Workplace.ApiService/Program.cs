@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Workplace.ApiService.Auth;
 using Workplace.ApiService.ConnectedAccounts;
 using Workplace.ApiService.Data;
+using Workplace.ApiService.WorkCalendar;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,12 +48,19 @@ app.UseWhen(
     context => context.Request.Path.StartsWithSegments("/connected-accounts"),
     branch => branch.UseMiddleware<CurrentUserMiddleware>());
 
+// The work-calendar sync endpoint is pushed to by an external console app, not the
+// logged-in Web session, so it's gated by a shared secret instead of the identity header.
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments("/work-calendar"),
+    branch => branch.UseMiddleware<SyncKeyMiddleware>());
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.MapConnectedAccountsEndpoints();
+app.MapWorkCalendarSyncEndpoints();
 
 app.MapDefaultEndpoints();
 
