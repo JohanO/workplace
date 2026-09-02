@@ -9,7 +9,6 @@ public enum ConnectedAccountProvider
 public class ConnectedAccount
 {
     public Guid Id { get; set; }
-    public required string UserId { get; set; }
     public ConnectedAccountProvider Provider { get; set; }
     public required string ProviderAccountId { get; set; }
     public string? TenantId { get; set; }

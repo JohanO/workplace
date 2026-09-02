@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using Workplace.ApiService.Data;
+using Workplace.Web.Data;
 
-namespace Workplace.ApiService.ConnectedAccounts;
+namespace Workplace.Web.ConnectedAccounts;
 
 public class TokenRefreshService(
     HttpClient httpClient,

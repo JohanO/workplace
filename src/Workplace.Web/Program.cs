@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -13,9 +13,10 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
-using System.Net;
+
 using Workplace.Web.CalendarConnections;
 using Workplace.Web.Components;
+using Workplace.Web.ConnectedAccounts;
 using Workplace.Web.Data;
 using Workplace.Web.WorkCalendar;
 
@@ -137,14 +138,9 @@ builder.Services.AddAuthentication()
     });
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddTransient<UserContextHandler>();
-builder.Services.AddHttpClient<ConnectedAccountsApiClient>(client =>
-    {
-        client.BaseAddress = new("https+http://apiservice");
-    })
-    .AddHttpMessageHandler<UserContextHandler>();
+builder.Services.AddScoped<ConnectedAccountsService>();
+builder.Services.AddHttpClient<TokenRefreshService>();
 
 builder.Services.AddHttpClient<WorkCalendarSyncApiClient>(client =>
 {
