@@ -1,5 +1,3 @@
-using Workplace.Contracts;
-
 namespace Workplace.Contracts.UnitTests.Agenda;
 
 public class AgendaDateRangeTests

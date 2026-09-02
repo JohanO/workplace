@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+
 using Workplace.Web.Data;
 
 namespace Workplace.Web.ConnectedAccounts;
@@ -15,12 +15,9 @@ public class TokenRefreshService(
 
     public async Task<string?> GetValidAccessTokenAsync(ConnectedAccount account, CancellationToken cancellationToken = default)
     {
-        if (account.EncryptedAccessToken is not null && account.ExpiresAtUtc - DateTimeOffset.UtcNow > RefreshBuffer)
-        {
-            return protector.Unprotect(account.EncryptedAccessToken);
-        }
-
-        return await RefreshAsync(account, cancellationToken);
+        return account.EncryptedAccessToken is not null && account.ExpiresAtUtc - DateTimeOffset.UtcNow > RefreshBuffer
+            ? protector.Unprotect(account.EncryptedAccessToken)
+            : await RefreshAsync(account, cancellationToken);
     }
 
     private async Task<string?> RefreshAsync(ConnectedAccount account, CancellationToken cancellationToken)
