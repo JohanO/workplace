@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Authentication;
@@ -35,7 +36,7 @@ public static class ConnectEndpoints
         var tenantId = principal.FindFirstValue(ConnectClaimTypes.TenantId);
 
         var expiresAtUtc = tokens.TryGetValue("expires_at", out var expiresAtRaw) &&
-            DateTimeOffset.TryParse(expiresAtRaw, out var parsedExpiresAt)
+            DateTimeOffset.TryParse(expiresAtRaw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedExpiresAt)
             ? parsedExpiresAt
             : DateTimeOffset.UtcNow.AddHours(1);
 

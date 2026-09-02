@@ -118,8 +118,8 @@ builder.Services.AddAuthentication()
         };
         options.Events.OnCreatingTicket = context =>
         {
-            // Google's handler already populates these via its default ClaimActions;
-            // copy them into the same normalized claim types the Microsoft flow uses,
+            // Google's handler already populates these via its default ClaimActions.
+            // Copy them into the same normalized claim types the Microsoft flow uses,
             // so ConnectEndpoints can read either provider's ticket identically.
             var subject = context.Identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var email = context.Identity?.FindFirst(ClaimTypes.Email)?.Value;
@@ -144,8 +144,8 @@ builder.Services.AddScoped<ConnectedAccountsService>();
 builder.Services.AddHttpClient<TokenRefreshService>();
 
 // Deny by default — every page requires login unless explicitly marked [AllowAnonymous].
-builder.Services.AddAuthorization(options =>
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build());
 
