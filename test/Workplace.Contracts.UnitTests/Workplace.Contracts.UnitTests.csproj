@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Workplace.ApiService\Workplace.ApiService.csproj" />
+    <ProjectReference Include="..\..\src\Workplace.Contracts\Workplace.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

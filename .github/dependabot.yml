@@ -10,15 +10,6 @@ updates:
           - "*"
 
   - package-ecosystem: "docker"
-    directory: "/src/Workplace.ApiService"
-    schedule:
-      interval: "weekly"
-    groups:
-      docker-dependencies:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "docker"
     directory: "/src/Workplace.Web"
     schedule:
       interval: "weekly"

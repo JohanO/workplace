@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Workplace.Contracts;
 
-namespace Workplace.ApiService.Agenda;
+namespace Workplace.Web.Agenda;
 
 public class GraphCalendarEventsClient(HttpClient httpClient)
 {

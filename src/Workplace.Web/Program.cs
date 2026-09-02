@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -192,6 +193,13 @@ app.MapConnectEndpoints();
 app.MapWorkCalendarSyncEndpoints();
 
 app.MapDefaultEndpoints();
+
+// Unlike the health checks MapDefaultEndpoints adds, this one is mapped unconditionally
+// (not just in Development) so Docker Compose's healthcheck can reach it in production.
+app.MapHealthChecks("/alive", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("live")
+}).AllowAnonymous();
 
 await app.RunAsync();
 

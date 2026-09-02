@@ -1,6 +1,6 @@
 using Workplace.Contracts;
 
-namespace Workplace.ApiService.UnitTests.Agenda;
+namespace Workplace.Contracts.UnitTests.Agenda;
 
 public class AgendaDateRangeTests
 {
