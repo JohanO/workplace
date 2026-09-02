@@ -142,11 +142,6 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<ConnectedAccountsService>();
 builder.Services.AddHttpClient<TokenRefreshService>();
 
-builder.Services.AddHttpClient<WorkCalendarSyncApiClient>(client =>
-{
-    client.BaseAddress = new("https+http://apiservice");
-});
-
 // Deny by default — every page requires login unless explicitly marked [AllowAnonymous].
 builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
