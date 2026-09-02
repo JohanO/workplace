@@ -9,17 +9,31 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using System.Net;
 using Workplace.Web.CalendarConnections;
 using Workplace.Web.Components;
+using Workplace.Web.Data;
 using Workplace.Web.WorkCalendar;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
+
+builder.Services.AddDbContext<WorkplaceDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("workplacedb")));
+
+var dataProtectionKeyPath = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "Workplace", "dpkeys");
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath))
+    .SetApplicationName("Workplace");
+builder.Services.AddSingleton<TokenProtector>();
 
 // Trust the reverse proxy (Cloudflare tunnel) running inside the Docker network so that
 // X-Forwarded-Proto is respected. This ensures OIDC/OAuth callback URIs use https:// and
@@ -144,6 +158,11 @@ builder.Services.AddAuthorization(options =>
         .Build());
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<WorkplaceDbContext>().Database.MigrateAsync();
+}
 
 app.UseForwardedHeaders();
 
