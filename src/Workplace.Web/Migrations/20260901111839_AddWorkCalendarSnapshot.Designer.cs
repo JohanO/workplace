@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Workplace.ApiService.Data;
+using Workplace.Web.Data;
 
 #nullable disable
 
-namespace Workplace.ApiService.Migrations
+namespace Workplace.Web.Migrations
 {
     [DbContext(typeof(WorkplaceDbContext))]
     [Migration("20260901111839_AddWorkCalendarSnapshot")]
@@ -20,7 +20,7 @@ namespace Workplace.ApiService.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
-            modelBuilder.Entity("Workplace.ApiService.Data.AppUser", b =>
+            modelBuilder.Entity("Workplace.Web.Data.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -41,7 +41,7 @@ namespace Workplace.ApiService.Migrations
                     b.ToTable("AppUsers");
                 });
 
-            modelBuilder.Entity("Workplace.ApiService.Data.ConnectedAccount", b =>
+            modelBuilder.Entity("Workplace.Web.Data.ConnectedAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -96,7 +96,7 @@ namespace Workplace.ApiService.Migrations
                     b.ToTable("ConnectedAccounts");
                 });
 
-            modelBuilder.Entity("Workplace.ApiService.Data.WorkCalendarSnapshot", b =>
+            modelBuilder.Entity("Workplace.Web.Data.WorkCalendarSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Workplace.ApiService.Migrations
+namespace Workplace.Web.Migrations
 {
     /// <inheritdoc />
     public partial class AddWorkCalendarSnapshot : Migration

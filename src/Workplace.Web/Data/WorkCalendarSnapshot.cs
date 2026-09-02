@@ -1,4 +1,4 @@
-namespace Workplace.ApiService.Data;
+namespace Workplace.Web.Data;
 
 public class WorkCalendarSnapshot
 {

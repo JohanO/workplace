@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Workplace.ApiService.Data;
+namespace Workplace.Web.Data;
 
 public class WorkplaceDbContext(DbContextOptions<WorkplaceDbContext> options) : DbContext(options)
 {
