@@ -6,7 +6,7 @@ public class AppFixture : AspireFixture<Projects.Workplace_AppHost>
 {
     protected override void ConfigureBuilder(IDistributedApplicationTestingBuilder builder)
     {
-        // apiservice won't start without these — provide placeholders so the
+        // webfrontend won't start without these — provide placeholders so the
         // fixture can boot without real OAuth client secrets.
         builder.Configuration["Parameters:msgraph-client-secret"] = "test-msgraph-secret";
         builder.Configuration["Parameters:google-client-secret"] = "test-google-secret";
@@ -23,7 +23,9 @@ public class AppFixture : AspireFixture<Projects.Workplace_AppHost>
                 AllowAutoRedirect = false,
                 // CI runners don't trust the local ASP.NET Core dev HTTPS certificate,
                 // so health checks/requests against https endpoints fail with UntrustedRoot.
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+                // Test-only client talking to a locally-spun-up instance of our own app —
+                // not a real trust boundary, so bypassing validation here is safe.
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true, // NOSONAR
             });
         });
     }

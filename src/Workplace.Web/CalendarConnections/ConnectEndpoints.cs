@@ -1,6 +1,9 @@
+using System.Globalization;
 using System.Security.Claims;
+
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+
+using Workplace.Web.Data;
 
 namespace Workplace.Web.CalendarConnections;
 
@@ -21,16 +24,6 @@ public static class ConnectEndpoints
 
     public static async Task CompleteConnectionAsync(TicketReceivedContext context)
     {
-        // At this point in the pipeline, HttpContext.User has not yet been populated with the
-        // primary login identity — remote-auth callback handling runs before that step — so
-        // UserContextHandler would otherwise see an anonymous user. Authenticate the login
-        // cookie explicitly and fix HttpContext.User up before calling out to ApiService.
-        var loginResult = await context.HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        if (loginResult.Succeeded && loginResult.Principal is not null)
-        {
-            context.HttpContext.User = loginResult.Principal;
-        }
-
         var scheme = context.Scheme.Name;
         var (provider, grantedScopes) = SchemeMetadata[scheme];
 
@@ -43,12 +36,12 @@ public static class ConnectEndpoints
         var tenantId = principal.FindFirstValue(ConnectClaimTypes.TenantId);
 
         var expiresAtUtc = tokens.TryGetValue("expires_at", out var expiresAtRaw) &&
-            DateTimeOffset.TryParse(expiresAtRaw, out var parsedExpiresAt)
+            DateTimeOffset.TryParse(expiresAtRaw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedExpiresAt)
             ? parsedExpiresAt
             : DateTimeOffset.UtcNow.AddHours(1);
 
-        var apiClient = context.HttpContext.RequestServices.GetRequiredService<ConnectedAccountsApiClient>();
-        await apiClient.ConnectAsync(new ConnectAccountRequest(
+        var accountsService = context.HttpContext.RequestServices.GetRequiredService<ConnectedAccountsService>();
+        await accountsService.ConnectAsync(new ConnectAccountRequest(
             provider,
             providerAccountId,
             tenantId,

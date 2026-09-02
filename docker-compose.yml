@@ -1,6 +1,6 @@
 services:
-  apiservice:
-    image: ${DOCKERHUB_USERNAME}/workplace-api:${IMAGE_TAG:-latest}
+  webfrontend:
+    image: ${DOCKERHUB_USERNAME}/workplace-web:${IMAGE_TAG:-latest}
     platform: linux/arm64
     restart: unless-stopped
     logging:
@@ -17,7 +17,7 @@ services:
     volumes:
       - workplace-data:/data
     networks:
-      - internal
+      - cf-ingress
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/alive"]
       interval: 5s
@@ -25,35 +25,10 @@ services:
       retries: 10
       start_period: 10s
 
-  webfrontend:
-    image: ${DOCKERHUB_USERNAME}/workplace-web:${IMAGE_TAG:-latest}
-    platform: linux/arm64
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    depends_on:
-      apiservice:
-        condition: service_healthy
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_HTTP_PORTS=8080
-      - AzureAd__ClientSecret=${AZURE_AD_CLIENT_SECRET}
-      - GoogleCalendar__ClientSecret=${GOOGLE_CLIENT_SECRET}
-      # Aspire service discovery resolves https+http://apiservice to this endpoint
-      - services__apiservice__http__0=http://apiservice:8080
-    networks:
-      - internal
-      - cf-ingress
-
 volumes:
   workplace-data:
 
 networks:
-  internal:
-    driver: bridge
   # Shared with talktrack's compose stack, which runs the single cloudflared
   # instance for the Pi. That stack must be up at least once to create this
   # network before this one can start. Add a public hostname route for this

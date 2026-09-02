@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Workplace.ApiService.Data;
+using Workplace.Web.Data;
 
 #nullable disable
 
-namespace Workplace.ApiService.Migrations
+namespace Workplace.Web.Migrations
 {
     [DbContext(typeof(WorkplaceDbContext))]
-    [Migration("20260901111839_AddWorkCalendarSnapshot")]
-    partial class AddWorkCalendarSnapshot
+    [Migration("20260902074602_RemoveUserScoping")]
+    partial class RemoveUserScoping
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,28 +20,7 @@ namespace Workplace.ApiService.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
-            modelBuilder.Entity("Workplace.ApiService.Data.AppUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AppUsers");
-                });
-
-            modelBuilder.Entity("Workplace.ApiService.Data.ConnectedAccount", b =>
+            modelBuilder.Entity("Workplace.Web.Data.ConnectedAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -84,19 +63,15 @@ namespace Workplace.ApiService.Migrations
                     b.Property<string>("TenantId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "Provider", "ProviderAccountId")
+                    b.HasIndex("Provider", "ProviderAccountId")
                         .IsUnique();
 
                     b.ToTable("ConnectedAccounts");
                 });
 
-            modelBuilder.Entity("Workplace.ApiService.Data.WorkCalendarSnapshot", b =>
+            modelBuilder.Entity("Workplace.Web.Data.WorkCalendarSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

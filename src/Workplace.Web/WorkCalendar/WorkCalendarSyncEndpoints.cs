@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Workplace.Contracts;
+using Workplace.Web.Data;
 
 namespace Workplace.Web.WorkCalendar;
 
@@ -13,7 +15,7 @@ public static class WorkCalendarSyncEndpoints
     }
 
     private static async Task<Results<UnauthorizedHttpResult, NoContent>> SyncAsync(
-        HttpRequest request, List<ProviderCalendarEvent> events, WorkCalendarSyncApiClient client, IConfiguration configuration)
+        HttpRequest request, List<ProviderCalendarEvent> events, WorkplaceDbContext db, IConfiguration configuration)
     {
         var expectedKey = configuration["OutlookSync:SyncKey"];
 
@@ -24,7 +26,14 @@ public static class WorkCalendarSyncEndpoints
             return TypedResults.Unauthorized();
         }
 
-        await client.SyncAsync(providedKey!, events);
+        db.WorkCalendarSnapshots.Add(new WorkCalendarSnapshot
+        {
+            Id = Guid.NewGuid(),
+            SyncedAtUtc = DateTimeOffset.UtcNow,
+            EventsJson = JsonSerializer.Serialize(events)
+        });
+
+        await db.SaveChangesAsync();
 
         return TypedResults.NoContent();
     }

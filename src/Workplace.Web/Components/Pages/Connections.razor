@@ -1,6 +1,6 @@
 @page "/connections"
 @attribute [Authorize]
-@inject ConnectedAccountsApiClient ApiClient
+@inject ConnectedAccountsService AccountsService
 @using Workplace.Web.CalendarConnections
 
 <PageTitle>Connections</PageTitle>
@@ -65,12 +65,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        accounts = await ApiClient.GetAccountsAsync();
+        accounts = await AccountsService.GetAccountsAsync();
     }
 
     private async Task DisconnectAsync(Guid id)
     {
-        await ApiClient.DisconnectAsync(id);
-        accounts = await ApiClient.GetAccountsAsync();
+        await AccountsService.DisconnectAsync(id);
+        accounts = await AccountsService.GetAccountsAsync();
     }
 }

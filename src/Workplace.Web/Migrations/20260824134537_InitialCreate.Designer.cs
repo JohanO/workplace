@@ -2,22 +2,25 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Workplace.ApiService.Data;
+using Workplace.Web.Data;
 
 #nullable disable
 
-namespace Workplace.ApiService.Migrations
+namespace Workplace.Web.Migrations
 {
     [DbContext(typeof(WorkplaceDbContext))]
-    partial class WorkplaceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260824134537_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
-            modelBuilder.Entity("Workplace.ApiService.Data.AppUser", b =>
+            modelBuilder.Entity("Workplace.Web.Data.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -38,7 +41,7 @@ namespace Workplace.ApiService.Migrations
                     b.ToTable("AppUsers");
                 });
 
-            modelBuilder.Entity("Workplace.ApiService.Data.ConnectedAccount", b =>
+            modelBuilder.Entity("Workplace.Web.Data.ConnectedAccount", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -91,24 +94,6 @@ namespace Workplace.ApiService.Migrations
                         .IsUnique();
 
                     b.ToTable("ConnectedAccounts");
-                });
-
-            modelBuilder.Entity("Workplace.ApiService.Data.WorkCalendarSnapshot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("EventsJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("SyncedAtUtc")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WorkCalendarSnapshots");
                 });
 #pragma warning restore 612, 618
         }

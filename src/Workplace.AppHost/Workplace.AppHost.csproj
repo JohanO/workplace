@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Workplace.ApiService\Workplace.ApiService.csproj" />
     <ProjectReference Include="..\Workplace.Web\Workplace.Web.csproj" />
   </ItemGroup>
 

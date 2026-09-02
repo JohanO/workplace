@@ -1,9 +1,8 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using Workplace.ApiService.Auth;
-using Workplace.ApiService.Data;
 
-namespace Workplace.ApiService.ConnectedAccounts;
+using Workplace.Web.Data;
+
+namespace Workplace.Web.CalendarConnections;
 
 public record ConnectAccountRequest(
     ConnectedAccountProvider Provider,
@@ -15,10 +14,9 @@ public record ConnectAccountRequest(
     string GrantedScopes,
     DateTimeOffset ExpiresAtUtc)
 {
-    public ConnectedAccount ToNewEntity(string userId, TokenProtector protector) => new()
+    public ConnectedAccount ToNewEntity(TokenProtector protector) => new()
     {
         Id = Guid.NewGuid(),
-        UserId = userId,
         Provider = Provider,
         ProviderAccountId = ProviderAccountId,
         TenantId = TenantId,
@@ -62,63 +60,48 @@ public record ConnectedAccountResponse(
         account.LastRefreshError);
 }
 
-public static class ConnectedAccountsEndpoints
+// Replaces the ConnectedAccountsApiClient (Web) + ConnectedAccountsEndpoints (ApiService) HTTP
+// round trip — both sides ran in the same process anyway, so this is a plain scoped service
+// that Razor components and ConnectEndpoints call directly. No per-user scoping: this app is
+// single-user, gated at login by AllowedUser:ObjectId (see Program.cs), so every connected
+// account in the database belongs to the one allowed user by construction.
+public class ConnectedAccountsService(WorkplaceDbContext db, TokenProtector protector)
 {
-    public static void MapConnectedAccountsEndpoints(this IEndpointRouteBuilder app)
+    public async Task<List<ConnectedAccountResponse>> GetAccountsAsync(CancellationToken cancellationToken = default)
     {
-        var group = app.MapGroup("/connected-accounts");
+        var accounts = await db.ConnectedAccounts.ToListAsync(cancellationToken);
 
-        group.MapGet("/", GetConnectedAccountsAsync);
-        group.MapPost("/", ConnectAccountAsync);
-        group.MapDelete("/{id:guid}", DisconnectAccountAsync);
+        return accounts.Select(ConnectedAccountResponse.FromEntity).ToList();
     }
 
-    private static async Task<Ok<List<ConnectedAccountResponse>>> GetConnectedAccountsAsync(
-        WorkplaceDbContext db, ICurrentUser currentUser)
-    {
-        var accounts = await db.ConnectedAccounts
-            .Where(a => a.UserId == currentUser.UserId)
-            .ToListAsync();
-
-        return TypedResults.Ok(accounts.Select(ConnectedAccountResponse.FromEntity).ToList());
-    }
-
-    private static async Task<Ok> ConnectAccountAsync(
-        ConnectAccountRequest request, WorkplaceDbContext db, TokenProtector protector, ICurrentUser currentUser)
+    public async Task ConnectAsync(ConnectAccountRequest request, CancellationToken cancellationToken = default)
     {
         var existing = await db.ConnectedAccounts.SingleOrDefaultAsync(a =>
-            a.UserId == currentUser.UserId &&
             a.Provider == request.Provider &&
-            a.ProviderAccountId == request.ProviderAccountId);
+            a.ProviderAccountId == request.ProviderAccountId, cancellationToken);
 
         if (existing is null)
         {
-            db.ConnectedAccounts.Add(request.ToNewEntity(currentUser.UserId, protector));
+            db.ConnectedAccounts.Add(request.ToNewEntity(protector));
         }
         else
         {
             request.ApplyTo(existing, protector);
         }
 
-        await db.SaveChangesAsync();
-
-        return TypedResults.Ok();
+        await db.SaveChangesAsync(cancellationToken);
     }
 
-    private static async Task<Results<NotFound, NoContent>> DisconnectAccountAsync(
-        Guid id, WorkplaceDbContext db, ICurrentUser currentUser)
+    public async Task DisconnectAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var account = await db.ConnectedAccounts
-            .SingleOrDefaultAsync(a => a.Id == id && a.UserId == currentUser.UserId);
+        var account = await db.ConnectedAccounts.SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
 
         if (account is null)
         {
-            return TypedResults.NotFound();
+            throw new InvalidOperationException($"Connected account '{id}' was not found.");
         }
 
         db.ConnectedAccounts.Remove(account);
-        await db.SaveChangesAsync();
-
-        return TypedResults.NoContent();
+        await db.SaveChangesAsync(cancellationToken);
     }
 }
