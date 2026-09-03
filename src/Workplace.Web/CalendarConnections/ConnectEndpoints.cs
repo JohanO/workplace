@@ -9,7 +9,11 @@ namespace Workplace.Web.CalendarConnections;
 
 public static class ConnectEndpoints
 {
-    private static readonly Dictionary<string, (ConnectedAccountProvider Provider, string GrantedScopes)> SchemeMetadata = new()
+    // Scopes actually requested per scheme — used as a fallback label only. The real scopes
+    // granted come from the token response itself (see below): a provider can silently grant
+    // fewer scopes than requested (e.g. a Workspace admin policy blocking an API for
+    // unverified apps), and that mismatch is exactly what needs to be visible, not papered over.
+    private static readonly Dictionary<string, (ConnectedAccountProvider Provider, string RequestedScopes)> SchemeMetadata = new()
     {
         [CalendarConnectionSchemes.MicrosoftGraphPersonal] = (ConnectedAccountProvider.MicrosoftGraph, "Calendars.ReadWrite offline_access User.Read"),
         [CalendarConnectionSchemes.MicrosoftGraphWork] = (ConnectedAccountProvider.MicrosoftGraph, "Calendars.Read offline_access User.Read"),
@@ -25,10 +29,17 @@ public static class ConnectEndpoints
     public static async Task CompleteConnectionAsync(TicketReceivedContext context)
     {
         var scheme = context.Scheme.Name;
-        var (provider, grantedScopes) = SchemeMetadata[scheme];
+        var (provider, requestedScopes) = SchemeMetadata[scheme];
 
         var principal = context.Principal!;
         var tokens = context.Properties!.GetTokens().ToDictionary(t => t.Name, t => t.Value);
+
+        // Prefer the "scope" field the provider actually returned in the token response over
+        // what was requested — they can differ (see note above), and that difference is the
+        // whole point of storing this.
+        var grantedScopes = tokens.GetValueOrDefault("scope") is { Length: > 0 } actualScopes
+            ? actualScopes
+            : requestedScopes;
 
         var providerAccountId = principal.FindFirstValue(ConnectClaimTypes.ProviderAccountId)
             ?? throw new InvalidOperationException($"Missing provider account id for scheme '{scheme}'.");

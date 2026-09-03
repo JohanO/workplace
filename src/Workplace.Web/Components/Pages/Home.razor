@@ -1,7 +1,71 @@
-﻿@page "/"
+@page "/"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
+@inject AgendaService AgendaService
+@using Workplace.Web.Agenda
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Agenda</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Agenda</h1>
 
-Welcome to your new app.
+@if (agenda is null)
+{
+    <p>Loading…</p>
+}
+else
+{
+    @if (agenda.Errors.Count > 0)
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var error in agenda.Errors)
+                {
+                    <li><strong>@error.CalendarLabel</strong>: @error.Message</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @foreach (var day in agenda.Days)
+    {
+        <h2 class="agenda-day-heading">@day.Date.DayOfWeek.ToString() @day.Date.ToString("yyyy-MM-dd")</h2>
+
+        @if (day.Events.Count == 0)
+        {
+            <p class="text-muted">No events.</p>
+        }
+        else
+        {
+            @foreach (var evt in day.Events.Where(e => e.IsAllDay))
+            {
+                <div class="agenda-row">
+                    <div class="agenda-event" style="border-left-color: @evt.Color;">
+                        <span class="agenda-time">All day</span>
+                        <span class="agenda-title">@evt.Title</span>
+                        <span class="agenda-calendar text-muted">@evt.CalendarLabel</span>
+                    </div>
+                </div>
+            }
+
+            @foreach (var evt in day.Events.Where(e => !e.IsAllDay))
+            {
+                <div class="agenda-row">
+                    <div class="agenda-event" style="border-left-color: @evt.Color;">
+                        <span class="agenda-time">@evt.Start.ToString("HH:mm")–@evt.End.ToString("HH:mm")</span>
+                        <span class="agenda-title">@evt.Title</span>
+                        <span class="agenda-calendar text-muted">@evt.CalendarLabel</span>
+                    </div>
+                </div>
+            }
+        }
+    }
+}
+
+@code {
+    private AgendaResult? agenda;
+
+    protected override async Task OnInitializedAsync()
+    {
+        agenda = await AgendaService.GetAgendaAsync();
+    }
+}
