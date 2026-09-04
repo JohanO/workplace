@@ -16,7 +16,9 @@ public record AgendaDay(DateOnly Date, List<AgendaEvent> Events);
 
 public record AgendaSourceError(string CalendarLabel, string Message);
 
-public record AgendaResult(List<AgendaDay> Days, List<AgendaSourceError> Errors);
+public record AgendaWarning(string CalendarLabel, string Message);
+
+public record AgendaResult(List<AgendaDay> Days, List<AgendaSourceError> Errors, List<AgendaWarning> Warnings);
 
 // Plain scoped service, same pattern as ConnectedAccountsService/CalendarColorService — no
 // HTTP layer, no per-user scoping (this app is single-user by construction).
@@ -56,8 +58,9 @@ public class AgendaService(
             .ToList();
 
         var days = dates.Select(date => BuildDay(date, allEvents)).ToList();
+        var warnings = new[] { workResult.Warning }.Where(w => w is not null).Select(w => w!).ToList();
 
-        return new AgendaResult(days, errors);
+        return new AgendaResult(days, errors, warnings);
     }
 
     private async Task<(List<AgendaEvent> Events, AgendaSourceError? Error)> FetchAccountEventsAsync(
@@ -94,7 +97,12 @@ public class AgendaService(
         }
     }
 
-    private async Task<(List<AgendaEvent> Events, AgendaSourceError? Error)> FetchWorkCalendarEventsAsync(
+    // The work calendar isn't fetched live like the connected accounts — it's pushed by a
+    // separately-run Outlook COM sync (see Workplace.OutlookSync), so its snapshot can go stale
+    // if that sync stops running without anyone noticing.
+    private static readonly TimeSpan StaleWorkCalendarThreshold = TimeSpan.FromHours(24);
+
+    private async Task<(List<AgendaEvent> Events, AgendaSourceError? Error, AgendaWarning? Warning)> FetchWorkCalendarEventsAsync(
         CalendarSource source, CancellationToken cancellationToken)
     {
         try
@@ -107,15 +115,20 @@ public class AgendaService(
 
             if (snapshot is null)
             {
-                return ([], null);
+                return ([], null, null);
             }
 
+            var age = DateTimeOffset.UtcNow - snapshot.SyncedAtUtc;
+            var warning = age > StaleWorkCalendarThreshold
+                ? new AgendaWarning(source.DisplayLabel, $"Last synced {snapshot.SyncedAtUtc:yyyy-MM-dd HH:mm} UTC — more than a day old.")
+                : null;
+
             var providerEvents = JsonSerializer.Deserialize<List<ProviderCalendarEvent>>(snapshot.EventsJson) ?? [];
-            return (ToAgendaEvents(providerEvents, source), null);
+            return (ToAgendaEvents(providerEvents, source), null, warning);
         }
         catch (Exception ex)
         {
-            return ([], new AgendaSourceError(source.DisplayLabel, ex.Message));
+            return ([], new AgendaSourceError(source.DisplayLabel, ex.Message), null);
         }
     }
 

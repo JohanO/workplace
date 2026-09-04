@@ -26,6 +26,18 @@ else
         </div>
     }
 
+    @if (agenda.Warnings.Count > 0)
+    {
+        <div class="alert alert-warning">
+            <ul class="mb-0">
+                @foreach (var warning in agenda.Warnings)
+                {
+                    <li><strong>@warning.CalendarLabel</strong>: @warning.Message</li>
+                }
+            </ul>
+        </div>
+    }
+
     @foreach (var day in agenda.Days)
     {
         <h2 class="agenda-day-heading">@day.Date.DayOfWeek.ToString() @day.Date.ToString("yyyy-MM-dd")</h2>
