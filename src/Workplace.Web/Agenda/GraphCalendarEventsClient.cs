@@ -44,6 +44,55 @@ public class GraphCalendarEventsClient(HttpClient httpClient)
         return events;
     }
 
+    public async Task<string> CreateAllDayEventAsync(
+        string accessToken, string title, DateOnly date, CancellationToken cancellationToken = default)
+    {
+        // Graph's documented shape for an all-day event: start/end at local midnight, one day
+        // apart, with isAllDay: true — a time-of-day-bearing start/end would create a timed event.
+        // showAs: "free" — otherwise Graph defaults all-day events to "busy", which would make
+        // a place event (informational only) block the whole day on everyone else's view of
+        // this calendar.
+        var body = new CreateEventRequest(
+            title,
+            true,
+            false,
+            "free",
+            new CreateEventDateTime(date.ToDateTime(TimeOnly.MinValue).ToString("s", CultureInfo.InvariantCulture)),
+            new CreateEventDateTime(date.AddDays(1).ToDateTime(TimeOnly.MinValue).ToString("s", CultureInfo.InvariantCulture)));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://graph.microsoft.com/v1.0/me/events");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Content = JsonContent.Create(body);
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"Graph event create returned {(int)response.StatusCode}: {errorBody}");
+        }
+
+        var created = await response.Content.ReadFromJsonAsync<CreatedEventResponse>(cancellationToken)
+            ?? throw new InvalidOperationException("Empty event create response.");
+
+        return created.Id;
+    }
+
+    public async Task DeleteEventAsync(string accessToken, string eventId, CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Delete, $"https://graph.microsoft.com/v1.0/me/events/{Uri.EscapeDataString(eventId)}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode && response.StatusCode != System.Net.HttpStatusCode.NotFound)
+        {
+            // A 404 means the event is already gone (e.g. deleted manually in Outlook) — treat
+            // that as success rather than failing the replace operation.
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"Graph event delete returned {(int)response.StatusCode}: {errorBody}");
+        }
+    }
+
     private static ProviderCalendarEvent ToProviderEvent(GraphEvent graphEvent) => new(
         graphEvent.Subject ?? string.Empty,
         ParseAsUtc(graphEvent.Start.DateTime),
@@ -68,4 +117,21 @@ public class GraphCalendarEventsClient(HttpClient httpClient)
 
     private sealed record GraphDateTimeTimeZone(
         [property: JsonPropertyName("dateTime")] string DateTime);
+
+    private sealed record CreateEventRequest(
+        [property: JsonPropertyName("subject")] string Subject,
+        [property: JsonPropertyName("isAllDay")] bool IsAllDay,
+        [property: JsonPropertyName("isReminderOn")] bool IsReminderOn,
+        [property: JsonPropertyName("showAs")] string ShowAs,
+        [property: JsonPropertyName("start")] CreateEventDateTime Start,
+        [property: JsonPropertyName("end")] CreateEventDateTime End);
+
+    // All-day events are pure calendar dates, so the timezone attached to their midnight
+    // boundaries is arbitrary — UTC avoids any DST-transition edge case a local zone would have.
+    private sealed record CreateEventDateTime(
+        [property: JsonPropertyName("dateTime")] string DateTime,
+        [property: JsonPropertyName("timeZone")] string TimeZone = "UTC");
+
+    private sealed record CreatedEventResponse(
+        [property: JsonPropertyName("id")] string Id);
 }

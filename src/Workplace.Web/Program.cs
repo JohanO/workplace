@@ -146,6 +146,7 @@ builder.Services.AddScoped<ConnectedAccountsService>();
 builder.Services.AddScoped<CalendarColorService>();
 builder.Services.AddScoped<AgendaService>();
 builder.Services.AddScoped<PlacesService>();
+builder.Services.AddScoped<PlaceEventsService>();
 builder.Services.AddHttpClient<TokenRefreshService>();
 builder.Services.AddHttpClient<GraphCalendarEventsClient>();
 builder.Services.AddHttpClient<GoogleCalendarEventsClient>();

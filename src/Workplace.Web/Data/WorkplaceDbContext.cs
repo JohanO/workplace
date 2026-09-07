@@ -8,6 +8,7 @@ public class WorkplaceDbContext(DbContextOptions<WorkplaceDbContext> options) : 
     public DbSet<WorkCalendarSnapshot> WorkCalendarSnapshots => Set<WorkCalendarSnapshot>();
     public DbSet<CalendarColorSetting> CalendarColorSettings => Set<CalendarColorSetting>();
     public DbSet<Place> Places => Set<Place>();
+    public DbSet<PlaceDayEvent> PlaceDayEvents => Set<PlaceDayEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,5 +18,8 @@ public class WorkplaceDbContext(DbContextOptions<WorkplaceDbContext> options) : 
 
         modelBuilder.Entity<CalendarColorSetting>()
             .HasKey(c => c.CalendarKey);
+
+        modelBuilder.Entity<PlaceDayEvent>()
+            .HasKey(p => p.Date);
     }
 }
