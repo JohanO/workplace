@@ -18,7 +18,7 @@ public record AgendaSourceError(string CalendarLabel, string Message);
 
 public record AgendaWarning(string CalendarLabel, string Message);
 
-public record AgendaResult(List<AgendaDay> Days, List<AgendaSourceError> Errors, List<AgendaWarning> Warnings);
+public record AgendaResult(DateOnly Today, List<AgendaDay> Days, List<AgendaSourceError> Errors, List<AgendaWarning> Warnings);
 
 // Plain scoped service, same pattern as ConnectedAccountsService/CalendarColorService — no
 // HTTP layer, no per-user scoping (this app is single-user by construction).
@@ -60,7 +60,7 @@ public class AgendaService(
         var days = dates.Select(date => BuildDay(date, allEvents)).ToList();
         var warnings = new[] { workResult.Warning }.Where(w => w is not null).Select(w => w!).ToList();
 
-        return new AgendaResult(days, errors, warnings);
+        return new AgendaResult(today, days, errors, warnings);
     }
 
     private async Task<(List<AgendaEvent> Events, AgendaSourceError? Error)> FetchAccountEventsAsync(

@@ -55,8 +55,25 @@ h1:focus {
     text-align: start;
 }
 
-.agenda-day-heading {
+.week-heading {
     margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--bs-secondary-color, #6c757d);
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+    padding-bottom: 0.35rem;
+}
+
+.week-heading:first-of-type {
+    margin-top: 0;
+}
+
+.agenda-day-heading {
+    margin-top: 1.5rem;
+    font-size: 1.5rem;
 }
 
 .agenda-day-heading:first-of-type {
@@ -123,4 +140,62 @@ h1:focus {
 .place-button.active {
     background-color: var(--place-color, #999);
     color: #fff;
+}
+
+.week-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.week-agenda-col,
+.week-summary-col {
+    min-width: 0;
+}
+
+.week-agenda-col {
+    flex: 1 1 0;
+}
+
+.week-summary-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.week-summary-item {
+    display: contents;
+}
+
+.week-summary-day,
+.week-summary-place {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.week-summary-day {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+@media (min-width: 641px) {
+    .week-layout {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .week-agenda-col,
+    .week-summary-col {
+        max-height: calc(100vh - 3.5rem - 2rem);
+        overflow-y: auto;
+    }
+
+    .week-summary-col {
+        flex: 0 0 360px;
+        position: sticky;
+        top: 0;
+    }
 }

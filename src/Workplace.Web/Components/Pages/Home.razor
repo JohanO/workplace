@@ -45,67 +45,94 @@ else
         </div>
     }
 
-    @foreach (var day in agenda.Days)
-    {
-        <h2 class="agenda-day-heading">@day.Date.DayOfWeek.ToString() @day.Date.ToString("yyyy-MM-dd")</h2>
-
-        var assignment = assignments.GetValueOrDefault(day.Date);
-        var assignedPlace = assignment is null ? null : places.FirstOrDefault(p => p.Id == assignment.PlaceId);
-
-        @* The place event is identified by title + calendar match rather than a stored Graph
-           event id (AgendaEvent doesn't carry one) — it's hidden here since the button row
-           below already shows the day's selected place, and showing both is redundant. *@
-        var visibleEvents = day.Events
-            .Where(e => assignedPlace is null || e.Title != assignedPlace.Name ||
-                        e.CalendarKey != CalendarColorService.AccountKey(assignment!.ConnectedAccountId))
-            .ToList();
-
-        @if (visibleEvents.Count == 0)
-        {
-            <p class="text-muted">No events.</p>
-        }
-        else
-        {
-            @foreach (var evt in visibleEvents.Where(e => e.IsAllDay))
+    <div class="week-layout">
+        <div class="week-agenda-col">
+            @foreach (var week in agenda.Days.GroupBy(d => System.Globalization.ISOWeek.GetWeekOfYear(d.Date)))
             {
-                <div class="agenda-row">
-                    <div class="agenda-event" style="border-left-color: @evt.Color;">
-                        <span class="agenda-time">All day</span>
-                        <span class="agenda-title">@evt.Title</span>
-                        <span class="agenda-calendar text-muted">@evt.CalendarLabel</span>
-                    </div>
-                </div>
-            }
+                <h2 class="week-heading">Week @week.Key (@GetWeekLabel(week.First().Date))</h2>
 
-            @foreach (var evt in visibleEvents.Where(e => !e.IsAllDay))
-            {
-                <div class="agenda-row">
-                    <div class="agenda-event" style="border-left-color: @evt.Color;">
-                        <span class="agenda-time">@evt.Start.ToString("HH:mm")–@evt.End.ToString("HH:mm")</span>
-                        <span class="agenda-title">@evt.Title</span>
-                        <span class="agenda-calendar text-muted">@evt.CalendarLabel</span>
-                    </div>
-                </div>
-            }
-        }
-
-        @if (places is { Count: > 0 })
-        {
-            <div class="place-button-row">
-                @foreach (var place in places)
+                @foreach (var day in week)
                 {
-                    var isActive = assignment?.PlaceId == place.Id;
-                    <button type="button"
-                            class="place-button @(isActive ? "active" : "")"
-                            style="--place-color: @place.Color;"
-                            disabled="@isBusy"
-                            @onclick="() => SelectPlaceAsync(day.Date, place.Id)">
-                        @place.Name
-                    </button>
+                    <h3 class="agenda-day-heading">@day.Date.DayOfWeek.ToString() @day.Date.ToString("yyyy-MM-dd")</h3>
+
+                    var assignment = assignments.GetValueOrDefault(day.Date);
+                    var assignedPlace = GetAssignedPlace(day.Date);
+
+                    @* The place event is identified by title + calendar match rather than a stored Graph
+                       event id (AgendaEvent doesn't carry one) — it's hidden here since the button row
+                       below already shows the day's selected place, and showing both is redundant. *@
+                    var visibleEvents = day.Events
+                        .Where(e => assignedPlace is null || e.Title != assignedPlace.Name ||
+                                    e.CalendarKey != CalendarColorService.AccountKey(assignment!.ConnectedAccountId))
+                        .ToList();
+
+                    @if (visibleEvents.Count == 0)
+                    {
+                        <p class="text-muted">No events.</p>
+                    }
+                    else
+                    {
+                        @foreach (var evt in visibleEvents.Where(e => e.IsAllDay))
+                        {
+                            <div class="agenda-row">
+                                <div class="agenda-event" style="border-left-color: @evt.Color;">
+                                    <span class="agenda-time">All day</span>
+                                    <span class="agenda-title">@evt.Title</span>
+                                    <span class="agenda-calendar text-muted">@evt.CalendarLabel</span>
+                                </div>
+                            </div>
+                        }
+
+                        @foreach (var evt in visibleEvents.Where(e => !e.IsAllDay))
+                        {
+                            <div class="agenda-row">
+                                <div class="agenda-event" style="border-left-color: @evt.Color;">
+                                    <span class="agenda-time">@evt.Start.ToString("HH:mm")–@evt.End.ToString("HH:mm")</span>
+                                    <span class="agenda-title">@evt.Title</span>
+                                    <span class="agenda-calendar text-muted">@evt.CalendarLabel</span>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @if (places is { Count: > 0 })
+                    {
+                        <div class="place-button-row">
+                            @foreach (var place in places)
+                            {
+                                var isActive = assignment?.PlaceId == place.Id;
+                                <button type="button"
+                                        class="place-button @(isActive ? "active" : "")"
+                                        style="--place-color: @place.Color;"
+                                        disabled="@isBusy"
+                                        @onclick="() => SelectPlaceAsync(day.Date, place.Id)">
+                                    @place.Name
+                                </button>
+                            }
+                        </div>
+                    }
                 }
-            </div>
-        }
-    }
+            }
+        </div>
+
+        <div class="week-summary-col">
+            <h2>Summary</h2>
+            @foreach (var week in agenda.Days.GroupBy(d => System.Globalization.ISOWeek.GetWeekOfYear(d.Date)))
+            {
+                <h3 class="week-heading">Week @week.Key (@GetWeekLabel(week.First().Date))</h3>
+                <ul class="week-summary-list">
+                    @foreach (var day in week)
+                    {
+                        var place = GetAssignedPlace(day.Date);
+                        <li class="week-summary-item">
+                            <span class="week-summary-day">@day.Date.DayOfWeek @day.Date.ToString("yyyy-MM-dd")</span>
+                            <span class="week-summary-place @(place is null ? "text-muted" : "")">@(place?.Name ?? "Undecided")</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
 }
 
 @code {
@@ -132,6 +159,38 @@ else
         var start = agenda.Days.Min(d => d.Date);
         var end = agenda.Days.Max(d => d.Date);
         assignments = await PlaceEventsService.GetAssignmentsAsync(start, end);
+    }
+
+    private Workplace.Web.Data.Place? GetAssignedPlace(DateOnly date)
+    {
+        var placeId = assignments.GetValueOrDefault(date)?.PlaceId;
+        return placeId is null ? null : places.FirstOrDefault(p => p.Id == placeId);
+    }
+
+    // Monday of the ISO week containing this date. AgendaEvent days are always weekdays, but
+    // agenda.Today can land on a weekend, so this handles Sunday=0 explicitly rather than
+    // assuming Monday=1..Friday=5.
+    private static DateOnly WeekStart(DateOnly date)
+    {
+        var isoDayOfWeek = date.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)date.DayOfWeek;
+        return date.AddDays(1 - isoDayOfWeek);
+    }
+
+    private string GetWeekLabel(DateOnly dayInWeek)
+    {
+        if (agenda is null)
+        {
+            return "";
+        }
+
+        var weeksFromNow = (WeekStart(dayInWeek).DayNumber - WeekStart(agenda.Today).DayNumber) / 7;
+        return weeksFromNow switch
+        {
+            0 => "this",
+            1 => "next",
+            2 => "in 2 weeks",
+            _ => weeksFromNow > 0 ? $"in {weeksFromNow} weeks" : ""
+        };
     }
 
     private async Task SelectPlaceAsync(DateOnly date, Guid placeId)
