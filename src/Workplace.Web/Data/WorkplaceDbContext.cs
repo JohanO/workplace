@@ -7,6 +7,7 @@ public class WorkplaceDbContext(DbContextOptions<WorkplaceDbContext> options) : 
     public DbSet<ConnectedAccount> ConnectedAccounts => Set<ConnectedAccount>();
     public DbSet<WorkCalendarSnapshot> WorkCalendarSnapshots => Set<WorkCalendarSnapshot>();
     public DbSet<CalendarColorSetting> CalendarColorSettings => Set<CalendarColorSetting>();
+    public DbSet<Place> Places => Set<Place>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

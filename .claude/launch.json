@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "workplace-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["watch", "run", "--project", "src/Workplace.AppHost"],
+      "port": 7268,
+      "url": "https://localhost:7268"
+    }
+  ]
+}

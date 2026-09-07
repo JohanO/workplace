@@ -1,0 +1,102 @@
+@page "/places"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
+@inject PlacesService PlacesService
+@using Workplace.Web.Data
+@using Workplace.Web.Places
+
+<PageTitle>Places</PageTitle>
+
+<h1>Places</h1>
+
+@if (places is null)
+{
+    <p>Loading…</p>
+}
+else if (places.Count == 0)
+{
+    <p>No places yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Colour</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var place in places)
+            {
+                <tr>
+                    <td>
+                        <input type="text" size="20" class="form-control" value="@place.Name"
+                               @onchange="e => SetNameAsync(place.Id, (string)e.Value!)" />
+                    </td>
+                    <td>
+                        <input type="color" class="form-control form-control-color" value="@place.Color"
+                               @onchange="e => SetColorAsync(place.Id, (string)e.Value!)" />
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(place.Id)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Add a place</h2>
+<div class="d-flex align-items-center gap-2">
+    <input type="text" size="20" class="form-control" style="max-width: 220px;" placeholder="Name" @bind="newName" />
+    <input type="color" class="form-control form-control-color" @bind="newColor" />
+    <button class="btn btn-primary" @onclick="AddAsync">Add</button>
+</div>
+
+@code {
+    private List<Place>? places;
+    private string newName = string.Empty;
+    private string newColor = "#4A90D9";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        places = await PlacesService.GetPlacesAsync();
+    }
+
+    private async Task AddAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            return;
+        }
+
+        await PlacesService.AddAsync(newName, newColor);
+        newName = string.Empty;
+        await LoadAsync();
+    }
+
+    private async Task SetNameAsync(Guid id, string name)
+    {
+        await PlacesService.SetNameAsync(id, name);
+        await LoadAsync();
+    }
+
+    private async Task SetColorAsync(Guid id, string color)
+    {
+        await PlacesService.SetColorAsync(id, color);
+        await LoadAsync();
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await PlacesService.DeleteAsync(id);
+        await LoadAsync();
+    }
+}

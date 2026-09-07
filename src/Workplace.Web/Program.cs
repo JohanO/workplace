@@ -20,6 +20,7 @@ using Workplace.Web.CalendarConnections;
 using Workplace.Web.Components;
 using Workplace.Web.ConnectedAccounts;
 using Workplace.Web.Data;
+using Workplace.Web.Places;
 using Workplace.Web.WorkCalendar;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -144,6 +145,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<ConnectedAccountsService>();
 builder.Services.AddScoped<CalendarColorService>();
 builder.Services.AddScoped<AgendaService>();
+builder.Services.AddScoped<PlacesService>();
 builder.Services.AddHttpClient<TokenRefreshService>();
 builder.Services.AddHttpClient<GraphCalendarEventsClient>();
 builder.Services.AddHttpClient<GoogleCalendarEventsClient>();
