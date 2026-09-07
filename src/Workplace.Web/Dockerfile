@@ -5,10 +5,12 @@ WORKDIR /src
 # Copy project files first for layer-cached restore
 COPY Directory.Build.props Directory.Packages.props global.json ./
 COPY src/Workplace.ServiceDefaults/Workplace.ServiceDefaults.csproj src/Workplace.ServiceDefaults/
+COPY src/Workplace.Contracts/Workplace.Contracts.csproj src/Workplace.Contracts/
 COPY src/Workplace.Web/Workplace.Web.csproj src/Workplace.Web/
 RUN dotnet restore src/Workplace.Web/Workplace.Web.csproj -a $TARGETARCH
 
 COPY src/Workplace.ServiceDefaults/ src/Workplace.ServiceDefaults/
+COPY src/Workplace.Contracts/ src/Workplace.Contracts/
 COPY src/Workplace.Web/ src/Workplace.Web/
 RUN dotnet publish src/Workplace.Web/Workplace.Web.csproj \
     -c Release -a $TARGETARCH -o /app/publish
