@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 
@@ -28,12 +29,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
+var workplaceDbConnectionString = builder.Configuration.GetConnectionString("workplacedb")
+    ?? throw new InvalidOperationException("ConnectionStrings:workplacedb is not configured.");
 builder.Services.AddDbContext<WorkplaceDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("workplacedb")));
+    options.UseSqlite(workplaceDbConnectionString));
 
-var dataProtectionKeyPath = Path.Combine(
-    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-    "Workplace", "dpkeys");
+// Keep the key ring next to the sqlite DB rather than under LocalApplicationData: in the
+// container, LocalApplicationData lives on the writable layer and is lost on every
+// redeploy, silently orphaning every encrypted connected-account token. The DB's directory
+// is already the one path we know is persisted (the /data volume in prod, the Aspire
+// AppHost "data" folder locally).
+var workplaceDbDirectory = Path.GetDirectoryName(new SqliteConnectionStringBuilder(workplaceDbConnectionString).DataSource)
+    ?? throw new InvalidOperationException("Could not determine a directory from the workplacedb connection string.");
+var dataProtectionKeyPath = Path.Combine(workplaceDbDirectory, "dpkeys");
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath))
     .SetApplicationName("Workplace");
