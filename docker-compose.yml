@@ -14,6 +14,7 @@ services:
       - ConnectionStrings__workplacedb=Data Source=/data/workplace.db
       - AzureAd__ClientSecret=${AZURE_AD_CLIENT_SECRET}
       - GoogleCalendar__ClientSecret=${GOOGLE_CLIENT_SECRET}
+      - OutlookSync__SyncKey=${OUTLOOK_SYNC_KEY}
     volumes:
       - workplace-data:/data
     networks:
