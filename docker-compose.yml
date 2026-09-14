@@ -30,7 +30,7 @@ volumes:
   workplace-data:
 
 networks:
-  # Shared with talktrack's compose stack, which runs the single cloudflared
+  # Shared with the pi-tunnel stack, which runs the single cloudflared
   # instance for the Pi. That stack must be up at least once to create this
   # network before this one can start. Add a public hostname route for this
   # app (-> webfrontend:8080) in the Cloudflare dashboard.
